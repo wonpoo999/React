@@ -1,5 +1,6 @@
 import { useState } from 'react'
 
+//Day2_04 : useState 연습. 출력값, 오류 등에 활용. 유효성 검사.
 export default function Calculator() {
   const [first, setFirst] = useState('')
   const [second, setSecond] = useState('')
@@ -43,6 +44,14 @@ export default function Calculator() {
     }
   }
 
+  function handleNumberInput(value) {
+    if (!validation(value)) {
+      setError('유효하지 않은 입력입니다.')
+    } else {
+      setError('')
+    }
+    setFirst(value)
+  }
   return (
     <div className='container'>
       Calculator
@@ -52,9 +61,9 @@ export default function Calculator() {
         type='number'
         placeholder='첫번째 값을 입력하세요.'
         value={first}
-        onChange={(e) => setFirst(e.target.value)}
-        // onChange={(e) => handleNumberInput(e.target.value)}
-        // 입력중에는 정규식 정확한 검사 불가
+        // onChange={(e) => setFirst(e.target.value)}
+        onChange={(e) => handleNumberInput(e.target.value)}
+        // ✅ 입력중 정규식 검사하여 잘못된 문자 입력을 막는 것은 불가
       />
       <button onClick={handleAdd}>+</button>
       <button onClick={handleSub}>-</button>
