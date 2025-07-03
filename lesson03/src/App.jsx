@@ -1,65 +1,76 @@
-import { useRef, useState } from 'react'
+import React, { useState, useRef } from 'react'
+import TodoTemplate from './components/TodoTemplate'
+import TodoInsert from './components/TodoInsert'
 import TodoList from './components/TodoList'
 
+//Day03_04 : component refactoring 사용해서
+//Day04_01 : children 속성 사용해서 완성함.
+//                  useRef() hook으로 rerendering 횟수 비교 (App_V1.jsx)
+
+// "HH:MM" → 분 단위 변환 함수
+const timeToMinutes = (time) => {
+  const [h, m] = time.split(':').map(Number)
+  return h * 60 + m
+}
+
+// 시간순 정렬 함수
+const sortByTime = (list) => {
+  return [...list].sort((a, b) => timeToMinutes(a.time) - timeToMinutes(b.time))
+}
+
 export default function App() {
-  const initVal = [
-    { id: 1, text: '리액트 수업 복습', checked: true },
-    { id: 2, text: '리액트 프로젝트 기획', checked: false },
-    { id: 3, text: '데이터베이스 테스트', checked: true }
-  ]
+  const [todos, setTodos] = useState([
+    { id: 1, text: '리액트 수업 복습', checked: true, time: '09:00' },
+    { id: 2, text: '리액트 프로젝트 기획', checked: false, time: '13:00' },
+    { id: 3, text: '데이터베이스 테스트', checked: true, time: '15:00' },
+  ])
 
-  const [todos, setTodos] = useState(initVal)
-  const [input, setInput] = useState('')
-  const maxid = useRef(todos.length + 1)
+  const nextId = useRef(4)
 
-  function handleChecked(id) {
-    const newtodos = todos.map((item) =>
-      item.id === id ? { ...item, checked: !item.checked } : item
-    )
-    setTodos(newtodos)
-  }
-
-  function handleRemove(id) {
-    const newtodos = todos.filter((item) => item.id !== id)
-    setTodos(newtodos)
-  }
-
-  const handleInsert = (text) => {
-    const todo = {
-      id: maxid.current,
+  const onInsert = (text, time) => {
+    const newTodo = {
+      id: nextId.current,
       text,
-      checked: false
+      checked: false,
+      time,
     }
-    setTodos([...todos, todo])
-    maxid.current += 1
+    nextId.current += 1
+    setTodos((prev) => sortByTime([...prev, newTodo]))
   }
 
-  // 🔽 form 제출 시 handleInsert 실행
-  const handleSubmit = (e) => {
-    e.preventDefault()
-    if (input.trim()) {
-      handleInsert(input)
-      setInput('')
-    }
+  const onRemove = (id) => {
+    setTodos((prev) => sortByTime(prev.filter((todo) => todo.id !== id)))
+  }
+
+  const onChecked = (id) => {
+    setTodos((prev) =>
+      sortByTime(
+        prev.map((todo) =>
+          todo.id === id ? { ...todo, checked: !todo.checked } : todo
+        )
+      )
+    )
+  }
+
+  const onTimeChange = (id, newTime) => {
+    setTodos((prev) =>
+      sortByTime(
+        prev.map((todo) =>
+          todo.id === id ? { ...todo, time: newTime } : todo
+        )
+      )
+    )
   }
 
   return (
-    <div>
-      <h1>할 일 목록</h1>
-      <form onSubmit={handleSubmit}>
-        <input
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          placeholder="할 일을 입력하세요"
-        />
-        <button type="submit">추가</button>
-      </form>
-
+    <TodoTemplate>
+      <TodoInsert onInsert={onInsert} />
       <TodoList
         todos={todos}
-        onRemove={handleRemove}
-        onChecked={handleChecked}
+        onRemove={onRemove}
+        onChecked={onChecked}
+        onTimeChange={onTimeChange}
       />
-    </div>
+    </TodoTemplate>
   )
 }

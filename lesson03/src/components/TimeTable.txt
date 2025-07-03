@@ -1,0 +1,21 @@
+// 기본 내보내기 필수! 
+export default function TimeTable({ times }) {
+  return (
+    <table style={{ borderCollapse: 'collapse', width: '100%', marginTop: 20 }}>
+      <thead>
+        <tr>
+          <th style={{ border: '1px solid #ddd', padding: '8px' }}>시간</th>
+          <th style={{ border: '1px solid #ddd', padding: '8px' }}>내용</th>
+        </tr>
+      </thead>
+      <tbody>
+        {times.map((time, idx) => (
+          <tr key={idx}>
+            <td style={{ border: '1px solid #ddd', padding: '8px' }}>{time.hour}</td>
+            <td style={{ border: '1px solid #ddd', padding: '8px' }}>{time.event}</td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  );
+}
