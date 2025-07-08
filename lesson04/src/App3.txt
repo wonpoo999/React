@@ -1,0 +1,97 @@
+import React, { useState, useEffect } from 'react'
+import TodoTemplate from './components/TodoTemplate'
+import TodoInsert from './components/TodoInsert'
+import TodoList from './components/TodoList'
+
+const timeToMinutes = (time) => {
+  if (!time || typeof time !== 'string') return Number.MAX_SAFE_INTEGER
+  const [h, m] = time.split(':').map(Number)
+  return h * 60 + m
+}
+
+const sortByTime = (list) =>
+  [...list].sort((a, b) => timeToMinutes(a.time) - timeToMinutes(b.time))
+
+export default function App() {
+  const API_BASE_URL = 'http://localhost:5000/api/todos'
+  const [todos, setTodos] = useState([])
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState(null)
+
+  const fetchTodos = async () => {
+    try {
+      setLoading(true)
+      const res = await fetch(API_BASE_URL)
+      if (!res.ok) throw new Error('서버 응답 오류')
+      const data = await res.json()
+      setTodos(sortByTime(data))
+    } catch (err) {
+      setError(err.message)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    fetchTodos()
+  }, [])
+
+  const onInsert = async (text) => {
+    try {
+      const newTodo = { text, checked: false, time: '' }
+      const res = await fetch(API_BASE_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newTodo),
+      })
+      if (!res.ok) throw new Error('추가 실패')
+      const created = await res.json()
+      setTodos((prev) => sortByTime([...prev, created]))
+    } catch (err) {
+      alert(err.message)
+    }
+  }
+
+  const onRemove = (id) =>
+    setTodos((prev) => sortByTime(prev.filter((todo) => todo.id !== id)))
+
+  const onChecked = (id) =>
+    setTodos((prev) =>
+      sortByTime(prev.map((todo) =>
+        todo.id === id ? { ...todo, checked: !todo.checked } : todo
+      ))
+    )
+
+  const onTimeChange = async (id, newTime) => {
+    try {
+      await fetch(`${API_BASE_URL}/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ time: newTime }),
+      })
+
+      setTodos((prev) =>
+        sortByTime(prev.map((todo) =>
+          todo.id === id ? { ...todo, time: newTime } : todo
+        ))
+      )
+    } catch (err) {
+      alert('시간 변경 실패')
+    }
+  }
+
+  if (loading) return <div>⏳ 로딩 중...</div>
+  if (error) return <div style={{ color: 'red' }}>❌ {error}</div>
+
+  return (
+    <TodoTemplate>
+      <TodoInsert onInsert={onInsert} />
+      <TodoList
+        todos={todos}
+        onRemove={onRemove}
+        onChecked={onChecked}
+        onTimeChange={onTimeChange}
+      />
+    </TodoTemplate>
+  )
+}

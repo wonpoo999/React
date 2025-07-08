@@ -1,0 +1,116 @@
+:root {
+  --bg-color-light: #fff;
+  --text-color-light: #000;
+  --bg-color-dark: #121212;
+  --text-color-dark: #eee;
+  --primary-color: #007bff;
+  --danger-color: #dc3545;
+}
+
+/* 기본 라이트 모드 */
+body {
+  background-color: var(--bg-color-light);
+  color: var(--text-color-light);
+  font-family: sans-serif;
+  margin: 20px;
+}
+
+.schedule-container {
+  max-width: 600px;
+  margin: auto;
+}
+
+.dates-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.date-btn {
+  padding: 8px 12px;
+  border: none;
+  background-color: #eee;
+  border-radius: 20px;
+  cursor: pointer;
+  position: relative;
+}
+
+.date-btn.selected {
+  background-color: var(--primary-color);
+  color: white;
+}
+
+.date-btn.has-todo::after {
+  content: "";
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  width: 8px;
+  height: 8px;
+  background-color: var(--danger-color);
+  border-radius: 50%;
+}
+
+.todo-list {
+  list-style: none;
+  padding: 0;
+}
+
+.todo-list li {
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.todo-list li.checked span {
+  text-decoration: line-through;
+  color: #888;
+}
+
+.add-todo-form {
+  margin-top: 10px;
+  display: flex;
+  gap: 10px;
+}
+
+.add-todo-form input[type="text"] {
+  flex-grow: 1;
+  padding: 6px 8px;
+}
+
+.add-todo-form input[type="time"] {
+  width: 100px;
+}
+
+.delete-all-btn {
+  margin-top: 20px;
+  background-color: var(--danger-color);
+  color: white;
+  border: none;
+  padding: 10px 16px;
+  cursor: pointer;
+  border-radius: 5px;
+}
+
+/* 다크 모드 */
+@media (prefers-color-scheme: dark) {
+  body {
+    background-color: var(--bg-color-dark);
+    color: var(--text-color-dark);
+  }
+
+  .date-btn {
+    background-color: #333;
+  }
+
+  .date-btn.selected {
+    background-color: var(--primary-color);
+    color: white;
+  }
+
+  .delete-all-btn {
+    background-color: #a94442;
+  }
+}

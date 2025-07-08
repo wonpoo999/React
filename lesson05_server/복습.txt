@@ -1,0 +1,32 @@
+참고 데이터 - React/lesson04
+
+중가로에만 들어 있는 것은 객체(object)
+
+ScheduleTable.jsx 코드 분석.
+
+#1 - {date, time, todo} 객체의 배열을 자료구조(데이터)로 사용하고 있다 - Schedules는 변수 / 배열이면 index를 사용할 것이다. Schedules 변수는 inddex로 접근할 수 있고, 또는 method callback function 인자로 한개씩 저장 및 가져갈 수 있다.
+ㄴ time, todo는 배열이다
+
+examples:
+schedules.map((sch,idx) => 실행코드)
+handleSelected(idx) : index 값 함수에 전달
+
+#2 -  1번 데이터는 4개 중 하나를 선택해서 상태값으로 관리
+    const [schedule, setSchedule] = useState(schedules[0]);
+
+#3 -  버튼 클릭할 때마다 schedule을 변경. => setSchedule(schedules[idx])
+
+#4 - 3번에서 상태값 shcedule을 변경하면 schedule를 사용하는 태그 요소의 출력이 변경됩니다. (rerendering 재랜더링) 
+        *참고: 기존 JS는 DOM을 직접 조작
+
+
+handleRemove
+
+handleChecked
+
+selectedSchedule
+
+setSchedule
+
+상태 변화 얘내들이 어렵다.
+

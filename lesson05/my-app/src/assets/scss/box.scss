@@ -1,0 +1,39 @@
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  overflow: hidden; // 스크롤 생기지 않게 방지
+}
+
+#container {
+  position: relative;
+  height: 100vh;
+}
+
+.nav {
+  height: 100px;
+  background: aqua;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.nav > button {
+  width: 60px;
+  height: 60px;
+  margin: 0 4px;
+  cursor: pointer;
+}
+
+.main {
+  position: relative;
+  height: calc(100vh - 100px);
+  background: antiquewhite;
+  overflow: hidden; // 스크롤 방지
+}
+
+#box {
+  background: cadetblue;
+  position: absolute;
+  transition: all 0.1s ease;
+}

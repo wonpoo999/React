@@ -1,0 +1,1137 @@
+TodosCardList.jsx
+
+import "./todocardList.css";
+import { FaTrash } from "react-icons/fa";
+export default function TodosCardList({ todos, onCheckedUpdate, onRemoved }) {
+  return (
+    <div className="container">
+      <div className="timeline">
+        {todos.map((item, idx) => {
+          return (
+            <div className="timeline-item" key={idx}>
+              <div
+                className={`timeline-content ${
+                  item.checked ? "completed" : ""
+                }`}
+              >
+                <div className="time">{item.time}</div>
+                <div className="task">{item.text}</div>
+                <div className="checkbox-container">
+                  <div className="custom-checkbox">
+                    <input
+                      type="checkbox"
+                      id={`task${idx}`}
+                      checked={item.checked || false}
+                      onChange={() => onCheckedUpdate(item.time, item.checked)}
+                    />
+                    <label
+                      htmlFor={`task${idx}`}
+                      className={`checkbox-label ${
+                        item.checked ? "checked" : ""
+                      }`}
+                    />
+                    <span
+                      className={`status-text ${
+                        item.checked ? "completed" : ""
+                      }`}
+                    >
+                      {item.checked ? "완료" : "미완료"}
+                    </span>
+                  </div>
+                  <div className="remove" onClick={() => onRemoved(item.time)}>
+                    <FaTrash />
+                  </div>
+                </div>
+              </div>
+              <div
+                className={`timeline-marker ${item.checked ? "completed" : ""}`}
+              ></div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+todocardList.css
+
+/* 타임라인 전체 너비 조정 */
+.timeline {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 100%;
+  max-width: 600px;
+  /* 필요시 조정 */
+  margin: 0 auto;
+}
+
+/* 각 항목을 한 줄로 정렬 */
+.timeline-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  white-space: nowrap;
+  /* 줄바꿈 방지 */
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* 시간, 텍스트, 체크박스를 한 줄로 표시 */
+.time,
+.task,
+.checkbox-container {
+  margin-right: 10px;
+}
+
+/* 텍스트가 너무 길 경우 생략 처리 */
+.task {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* 체크박스 부분 정렬 */
+.checkbox-container {
+  display: flex;
+  align-items: center;
+}
+
+.custom-checkbox {
+  display: flex;
+  align-items: center;
+}
+
+.status-text {
+  margin-left: 6px;
+  font-size: 0.9rem;
+}
+
+/* 완료된 항목 스타일 (선택 사항) */
+.completed {
+  color: gray;
+  text-decoration: line-through;
+  opacity: 0.7;
+}
+
+/* 삭제 아이콘 스타일 */
+.delete-icon {
+  margin-left: 10px;
+  color: #dc3545;
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+
+.delete-icon:hover {
+  transform: scale(1.2);
+}
+
+.remove {
+  display: flex;
+  align-items: center;
+  color: #ff6b6b;
+  cursor: pointer;
+  padding-left: 5px;
+}
+
+.remove:hover {
+  color: #ff8787;
+}
+
+Schedules.jsx
+
+import React, { useState, useEffect } from "react";
+import Calendar from "react-calendar";
+import "react-calendar/dist/Calendar.css";
+import { useSchedules } from "./hooks/useSchedules";
+import TodosCardList from "./TodosCardList";
+import TodoForm from "./components/TodoForm";
+import LoadingSpinner from "./components/LoadingSpinner";
+import ErrorMessage from "./components/ErrorMessage";
+import { dateFormat } from "./utils/dateUtils";
+
+export default function Schedules() {
+  const {
+    schedules,
+    selectedSchedule,
+    loading,
+    error,
+    selectScheduleByDate,
+    updateCheckedStatus,
+    deleteTodo: deleteTodoFromHook,
+    addTodo,
+  } = useSchedules();
+
+  const [calendarDate, setCalendarDate] = useState(new Date());
+  const [currentSchedules, setCurrentSchedules] = useState(schedules || []);
+  const [currentSelectedSchedule, setCurrentSelectedSchedule] = useState(selectedSchedule);
+
+  useEffect(() => {
+    setCurrentSchedules(schedules || []);
+  }, [schedules]);
+
+  useEffect(() => {
+    setCurrentSelectedSchedule(selectedSchedule);
+  }, [selectedSchedule]);
+
+  const handleDateChange = (date) => {
+    setCalendarDate(date);
+    const sel = dateFormat(date);
+    selectScheduleByDate(sel);
+  };
+
+  const deleteTodo = (date, todoTime) => {
+    // 로컬 상태에서 즉시 반영
+    const updated = currentSchedules
+      .map((s) =>
+        s.date === date
+          ? { ...s, todos: s.todos.filter((t) => t.time !== todoTime) }
+          : s
+      )
+      .filter((s) => s.todos.length > 0);
+    setCurrentSchedules(updated);
+
+    if (currentSelectedSchedule?.date === date) {
+      const filtered = currentSelectedSchedule.todos.filter((t) => t.time !== todoTime);
+      setCurrentSelectedSchedule(
+        filtered.length > 0 ? { ...currentSelectedSchedule, todos: filtered } : null
+      );
+    }
+
+    deleteTodoFromHook(date, todoTime);
+  };
+
+  if (loading) return <LoadingSpinner message="스케줄을 불러오는 중..." />;
+  if (error) return <ErrorMessage message={error} onRetry={() => window.location.reload()} />;
+
+  return (
+    <div className="container" style={{ padding: "20px", margin: "0 auto" }}>
+      <h2 style={{ textAlign: "center", color: "var(--heading-color)", marginBottom: "2rem" }}>
+        일정 관리
+      </h2>
+
+      <div style={{ display: "flex" }}>
+        {/* 캘린더 */}
+        <div style={{ margin: "30px", width: "380px", textAlign: "center" }}>
+          <Calendar
+            onChange={handleDateChange}
+            value={calendarDate}
+            locale="ko-KR"
+            formatDay={(locale, date) => date.getDate()}
+            tileClassName={({ date, view }) => {
+              if (view !== "month") return null;
+              const ds = dateFormat(date);
+              return currentSchedules.some((s) => s.date === ds && s.todos.length > 0)
+                ? "has-schedule"
+                : null;
+            }}
+            tileContent={null}
+          />
+
+          <TodoForm calendarDate={dateFormat(calendarDate)} onAddTodo={addTodo} />
+          <hr style={{ margin: "2rem 0" }} />
+        </div>
+
+        {/* 할 일 목록 */}
+        <div style={{ marginBottom: "2rem", width: "400px" }}>
+          <h3 style={{ color: "var(--heading-color)", marginBottom: "1rem" }}>
+            📅 {dateFormat(calendarDate)}
+          </h3>
+
+          {currentSelectedSchedule?.todos?.length > 0 ? (
+            <>
+              <hr style={{ margin: "2rem 0" }} />
+              <TodosCardList
+                todos={currentSelectedSchedule.todos}
+                onCheckedUpdate={updateCheckedStatus}
+                onRemoved={deleteTodo}
+              />
+            </>
+          ) : (
+            <p style={{
+              color: "var(--subtext-color)",
+              fontStyle: "italic",
+              textAlign: "center",
+              padding: "2rem"
+            }}>
+              이 날짜에 등록된 할 일이 없습니다.
+            </p>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+Schedules.css
+
+:root {
+  --bg-color-light: #fff;
+  --text-color-light: #000;
+  --bg-color-dark: #121212;
+  --text-color-dark: #eee;
+  --primary-color: #007bff;
+  --danger-color: #dc3545;
+}
+
+/* 기본 라이트 모드 */
+body {
+  background-color: var(--bg-color-light);
+  color: var(--text-color-light);
+  font-family: sans-serif;
+  margin: 20px;
+}
+
+.schedule-container {
+  max-width: 600px;
+  margin: auto;
+}
+
+.dates-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.date-btn {
+  padding: 8px 12px;
+  border: none;
+  background-color: #eee;
+  border-radius: 20px;
+  cursor: pointer;
+  position: relative;
+}
+
+.date-btn.selected {
+  background-color: var(--primary-color);
+  color: white;
+}
+
+.date-btn.has-todo::after {
+  content: "";
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  width: 8px;
+  height: 8px;
+  background-color: var(--danger-color);
+  border-radius: 50%;
+}
+
+.todo-list {
+  list-style: none;
+  padding: 0;
+}
+
+.todo-list li {
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.todo-list li.checked span {
+  text-decoration: line-through;
+  color: #888;
+}
+
+.add-todo-form {
+  margin-top: 10px;
+  display: flex;
+  gap: 10px;
+}
+
+.add-todo-form input[type="text"] {
+  flex-grow: 1;
+  padding: 6px 8px;
+}
+
+.add-todo-form input[type="time"] {
+  width: 100px;
+}
+
+.delete-all-btn {
+  margin-top: 20px;
+  background-color: var(--danger-color);
+  color: white;
+  border: none;
+  padding: 10px 16px;
+  cursor: pointer;
+  border-radius: 5px;
+}
+
+/* 다크 모드 */
+@media (prefers-color-scheme: dark) {
+  body {
+    background-color: var(--bg-color-dark);
+    color: var(--text-color-dark);
+  }
+
+  .date-btn {
+    background-color: #333;
+  }
+
+  .date-btn.selected {
+    background-color: var(--primary-color);
+    color: white;
+  }
+
+  .delete-all-btn {
+    background-color: #a94442;
+  }
+}
+
+main.jsx
+
+import React from "react";
+import { createRoot } from "react-dom/client";
+import "./index.css";
+import Schedules from "./Schedules";
+
+createRoot(document.getElementById("root")).render(
+  <React.StrictMode>
+    <Schedules />
+  </React.StrictMode>
+);
+
+index.css
+
+:root {
+  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
+  line-height: 1.5;
+  font-weight: 400;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+
+  /* 🎯 색상 변수: 라이트모드 기준 */
+  --calendar-bg: #fff;
+  --calendar-text: #333;
+  --calendar-hover-bg: #e6f0ff;
+  --calendar-hover-text: #000;
+  --calendar-active-bg: #4e85f0;
+  --calendar-active-text: #fff;
+  --calendar-today-bg: #ffd700;
+
+  --todo-bg: #f9f9f9;
+  --todo-border: #d0d0d0;
+  --todo-text: #222;
+  --todo-completed-text: #888;
+  --todo-accent: #ff6b6b;
+
+  --heading-color: #222;
+  --subtext-color: #444;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    color: rgba(255, 255, 255, 0.87);
+    background-color: #242424;
+
+    --calendar-bg: #333;
+    --calendar-text: #fff;
+    --calendar-hover-bg: #444;
+    --calendar-hover-text: #fff;
+    --calendar-active-bg: #1a73e8;
+    --calendar-active-text: #fff;
+    --calendar-today-bg: #ffa500;
+
+    --todo-bg: #3a3a3a;
+    --todo-border: #555;
+    --todo-text: #f1f1f1;
+    --todo-completed-text: #999;
+    --todo-accent: #ff8787;
+
+    --heading-color: #f9f9f9;
+    --subtext-color: #ccc;
+  }
+}
+
+/* 기본 레이아웃 */
+body {
+  margin: 0;
+  display: flex;
+  place-items: center;
+  min-width: 320px;
+  min-height: 100vh;
+}
+
+a {
+  font-weight: 500;
+  color: #646cff;
+  text-decoration: inherit;
+}
+a:hover {
+  color: #535bf2;
+}
+
+/* ✅ 제목 및 날짜 텍스트 가독성 개선 */
+h1, h2, h3 {
+  color: var(--heading-color) !important;
+}
+.selected-date-text {
+  color: var(--subtext-color);
+}
+
+/* 📅 react-calendar 스타일 */
+.react-calendar {
+  background-color: var(--calendar-bg);
+  color: var(--calendar-text);
+  border: none;
+  border-radius: 8px;
+  padding: 10px;
+  font-size: 1rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+.react-calendar__tile:enabled:hover {
+  background-color: var(--calendar-hover-bg);
+  color: var(--calendar-hover-text);
+}
+.react-calendar__tile--active {
+  background-color: var(--calendar-active-bg);
+  color: var(--calendar-active-text);
+}
+.react-calendar__tile--now {
+  background: var(--calendar-today-bg);
+  font-weight: bold;
+}
+/* 🎯 날짜 ● 점 크기/위치 조정 → 점은 제거되었으므로 이 부분도 무의미해짐 */
+.react-calendar__month-view__days__day > div {
+  font-size: 0.7rem !important;
+  line-height: 1;
+  position: relative;
+  top: 2px;
+  color: var(--todo-accent);
+}
+
+/* ✅ 할 일 카드 스타일 */
+.timeline-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  background: var(--todo-bg);
+  border: 1px solid var(--todo-border);
+  border-radius: 8px;
+  color: var(--todo-text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.timeline-content.completed {
+  color: var(--todo-completed-text);
+  text-decoration: line-through;
+}
+.remove {
+  display: flex;
+  align-items: center;
+  color: var(--todo-accent);
+  cursor: pointer;
+  padding-left: 5px;
+}
+.remove:hover {
+  filter: brightness(1.2);
+}
+.status-text {
+  margin-left: 6px;
+  font-size: 0.9rem;
+}
+
+/* 📦 기타 버튼 */
+button {
+  border-radius: 8px;
+  border: 1px solid transparent;
+  padding: 0.6em 1.2em;
+  font-size: 1em;
+  font-weight: 500;
+  font-family: inherit;
+  background-color: #1a1a1a;
+  cursor: pointer;
+  transition: border-color 0.25s;
+}
+button:hover {
+  border-color: #646cff;
+}
+button:focus,
+button:focus-visible {
+  outline: 4px auto -webkit-focus-ring-color;
+}
+@media (prefers-color-scheme: light) {
+  :root {
+    color: #213547;
+    background-color: #ffffff;
+  }
+  a:hover {
+    color: #747bff;
+  }
+  button {
+    background-color: #f9f9f9;
+  }
+}
+
+/* 일정 있는 날짜 테두리 강조 */
+.react-calendar__tile.has-schedule {
+  position: relative;
+  border: 2px solid var(--todo-accent);
+  border-radius: 50%;
+  font-weight: bold;
+  transition: border-color 0.2s;
+}
+
+/* ✅ 제거됨: 점 스타일
+.schedule-dot {
+  position: absolute;
+  bottom: 4px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background-color: var(--todo-accent);
+  pointer-events: none;
+}
+*/
+
+/* 중복 변수 제거됨 (이미 위에서 선언) */
+
+App.jsx
+
+import { useState } from 'react'
+import reactLogo from './assets/react.svg'
+import viteLogo from '/vite.svg'
+import './App.css'
+
+function App() {
+  const [count, setCount] = useState(0)
+
+  return (
+    <>
+      <div>
+        <a href="https://vite.dev" target="_blank">
+          <img src={viteLogo} className="logo" alt="Vite logo" />
+        </a>
+        <a href="https://react.dev" target="_blank">
+          <img src={reactLogo} className="logo react" alt="React logo" />
+        </a>
+      </div>
+      <h1>Vite + React</h1>
+      <div className="card">
+        <button onClick={() => setCount((count) => count + 1)}>
+          count is {count}
+        </button>
+        <p>
+          Edit <code>src/App.jsx</code> and save to test HMR
+        </p>
+      </div>
+      <p className="read-the-docs">
+        Click on the Vite and React logos to learn more
+      </p>
+    </>
+  )
+}
+
+export default App
+
+App.css
+
+#root {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 2rem;
+  text-align: center;
+}
+
+.logo {
+  height: 6em;
+  padding: 1.5em;
+  will-change: filter;
+  transition: filter 300ms;
+}
+.logo:hover {
+  filter: drop-shadow(0 0 2em #646cffaa);
+}
+.logo.react:hover {
+  filter: drop-shadow(0 0 2em #61dafbaa);
+}
+
+@keyframes logo-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  a:nth-of-type(2) .logo {
+    animation: logo-spin infinite 20s linear;
+  }
+}
+
+.card {
+  padding: 2em;
+}
+
+.read-the-docs {
+  color: #888;
+}
+
+dateUtils.js
+
+export function dateFormat(date) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`; // YYYY-MM-DD
+}
+
+useSchedules.js
+
+import { useState, useEffect, useMemo } from "react";
+import { scheduleApi } from "../api/scheduleApi";
+import { DEFAULT_TIME } from "../api/constants";
+
+export const useSchedules = () => {
+  const [schedules, setSchedules] = useState(null);
+  const [selectedSchedule, setSelectedSchedule] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  const sortedSchedules = useMemo(() => {
+    return schedules?.slice().sort((a, b) => new Date(a.date) - new Date(b.date));
+  }, [schedules]);
+
+  const loadData = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const data = await scheduleApi.getAllSchedules();
+      setSchedules(data);
+      if (data.length > 0) setSelectedSchedule(data[0]);
+      else setSelectedSchedule(null);
+    } catch (err) {
+      setError(err.message);
+      console.error("Error loading schedules:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const selectScheduleByDate = async (date) => {
+    try {
+      setLoading(true);
+      setError(null);
+      const data = await scheduleApi.getScheduleByDate(date);
+      data?.todos.sort((a, b) => a.time.localeCompare(b.time));
+      setSelectedSchedule(data);
+    } catch (err) {
+      setError(err.message);
+      console.error("Error selecting schedule:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const updateCheckedStatus = async (time, checked) => {
+    if (!selectedSchedule) return;
+    try {
+      setLoading(true);
+      setError(null);
+      await scheduleApi.updateCheckedStatus(selectedSchedule.date, time, checked);
+      const updatedTodos = selectedSchedule.todos.map((item) =>
+        item.time === time ? { ...item, checked: !item.checked } : item
+      );
+      const updatedSchedule = { ...selectedSchedule, todos: updatedTodos };
+      setSelectedSchedule(updatedSchedule);
+      setSchedules((prev) =>
+        prev.map((item) =>
+          item.date === selectedSchedule.date ? updatedSchedule : item
+        )
+      );
+    } catch (err) {
+      setError(err.message);
+      console.error("Error updating checked status:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const deleteTodo = async (time) => {
+    if (!selectedSchedule) return;
+    try {
+      setLoading(true);
+      setError(null);
+      await scheduleApi.deleteTodo(selectedSchedule.date, time);
+      const filteredTodos = selectedSchedule.todos.filter((item) => item.time !== time);
+      let updatedSchedules;
+      if (filteredTodos.length === 0) {
+        updatedSchedules = schedules.filter((item) => item.date !== selectedSchedule.date);
+        setSelectedSchedule(null);
+      } else {
+        updatedSchedules = schedules.map((item) =>
+          item.date === selectedSchedule.date ? { ...item, todos: filteredTodos } : item
+        );
+        setSelectedSchedule({ ...selectedSchedule, todos: filteredTodos });
+      }
+      setSchedules(updatedSchedules);
+    } catch (err) {
+      setError(err.message);
+      console.error("Error deleting todo:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const addTodo = async (date, time, text) => {
+    try {
+      setLoading(true);
+      setError(null);
+      await scheduleApi.addTodo(date, time, text);
+
+      const newTodo = { time, text, checked: false };
+      const existingSchedule = schedules?.find((item) => item.date === date);
+
+      if (!existingSchedule) {
+        const newSchedule = { date, todos: [newTodo] };
+        setSchedules((prev) => [...prev, newSchedule]);
+        setSelectedSchedule(newSchedule);
+      } else {
+        const updatedSchedule = {
+          ...existingSchedule,
+          todos: [...existingSchedule.todos, newTodo].sort((a, b) => a.time.localeCompare(b.time)),
+        };
+        setSchedules((prev) =>
+          prev.map((item) => (item.date === date ? updatedSchedule : item))
+        );
+        setSelectedSchedule(updatedSchedule);
+      }
+    } catch (err) {
+      setError(err.message);
+      console.error("Error adding todo:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadData();
+  }, []);
+
+  return {
+    schedules,
+    selectedSchedule,
+    sortedSchedules,
+    loading,
+    error,
+    selectScheduleByDate,
+    updateCheckedStatus,
+    deleteTodo,
+    addTodo,
+  };
+};
+
+TodoForm.jsx
+
+import React, { useState } from "react";
+import { DEFAULT_TIME } from "../api/constants";
+
+const TodoForm = ({ calendarDate, onAddTodo }) => {
+  const [text, setText] = useState("");
+  const [time, setTime] = useState(DEFAULT_TIME);
+
+  const handleSubmit = async () => {
+    if (!text.trim() || !calendarDate || !time) {
+      alert("모든 필드를 입력해주세요.");
+      return;
+    }
+
+    await onAddTodo(calendarDate, time, text);
+    setText("");
+    setTime(DEFAULT_TIME);
+  };
+
+  const handleKeyDown = (e) => {
+    if (e.key === "Enter") {
+      handleSubmit();
+    }
+  };
+
+  return (
+    <div style={{ margin: "1rem 0" }}>
+      <input
+        type="time"
+        value={time}
+        onChange={(e) => setTime(e.target.value)}
+        style={{ marginRight: "8px", padding: "4px" }}
+      />
+      <input
+        type="text"
+        placeholder="내용을 입력하세요."
+        value={text}
+        onChange={(e) => setText(e.target.value)}
+        onKeyDown={handleKeyDown}
+        style={{ marginRight: "8px", padding: "6px" }}
+      />
+      <button
+        onClick={handleSubmit}
+        style={{
+          padding: "6px 12px",
+          backgroundColor: "#28a745",
+          color: "white",
+          border: "none",
+          borderRadius: "4px",
+          cursor: "pointer",
+        }}
+      >
+        저장
+      </button>
+    </div>
+  );
+};
+
+export default TodoForm;
+
+SchedulePage.jsx
+
+import React from "react";
+import { useSchedules } from "../hooks/useSchedules";
+import ScheduleDetail from "./ScheduleDetail";
+
+export default function SchedulePage() {
+  const {
+    selectedSchedule,
+    deleteAllTodos,
+    loading,
+    // 필요시 다른 함수 및 상태도 같이 사용 가능
+  } = useSchedules();
+
+  return (
+    <div>
+      {/* 달력, 일정 리스트 등 다른 UI 구성요소는 별도 구현 */}
+      
+      <ScheduleDetail
+        selectedSchedule={selectedSchedule}
+        deleteAllTodos={deleteAllTodos}
+        loading={loading}
+      />
+    </div>
+  );
+}
+
+ScheduleDetail.jsx
+
+import React from "react";
+
+export default function ScheduleDetail({ selectedSchedule, deleteAllTodos, loading }) {
+  if (!selectedSchedule) return <div>일정을 선택해 주세요.</div>;
+
+  const { date, todos } = selectedSchedule;
+
+  return (
+    <div>
+      <h3>{date} 일정</h3>
+      <ul>
+        {todos.map((todo) => (
+          <li key={todo.time}>
+            {todo.time} - {todo.text} [{todo.checked ? "완료" : "미완료"}]
+          </li>
+        ))}
+      </ul>
+
+      <button
+        onClick={() => {
+          if (window.confirm(`${date}의 모든 일정을 삭제할까요?`)) {
+            deleteAllTodos(date);
+          }
+        }}
+        disabled={loading}
+        style={{ backgroundColor: "red", color: "white" }}
+      >
+        전체 일정 삭제
+      </button>
+    </div>
+  );
+}
+
+ScheduleButtons.jsx
+
+const ScheduleButtons = ({ schedules, selectedDate, onScheduleSelect }) => {
+  const buttonStyle = (isSelected) => ({
+    margin: "0 5px",
+    padding: "8px 16px",
+    backgroundColor: isSelected ? "#ccc" : "#007bff",
+    color: isSelected ? "#666" : "white",
+    border: "none",
+    borderRadius: "4px",
+    cursor: isSelected ? "not-allowed" : "pointer",
+  });
+
+  return (
+    <div style={{ marginTop: "1rem", marginBottom: "1rem" }}>
+      {schedules.map((schedule, index) => {
+        const isSelected = selectedDate === schedule.date;
+        return (
+          <button
+            key={index}
+            onClick={() => onScheduleSelect(schedule.date)}
+            disabled={isSelected}
+            style={buttonStyle(isSelected)}
+          >
+            {schedule.date}
+          </button>
+        );
+      })}
+    </div>
+  );
+};
+
+export default ScheduleButtons;
+
+LoadingSpinner.jsx
+
+import React from "react";
+
+const LoadingSpinner = ({ message = "로딩 중..." }) => {
+  return (
+    <div
+      style={{
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "center",
+        padding: "20px",
+        fontSize: "16px",
+        color: "#666",
+      }}
+    >
+      <div
+        style={{
+          border: "3px solid #f3f3f3",
+          borderTop: "3px solid #007bff",
+          borderRadius: "50%",
+          width: "20px",
+          height: "20px",
+          animation: "spin 1s linear infinite",
+          marginRight: "10px",
+        }}
+      ></div>
+      {message}
+      <style>{`
+        @keyframes spin {
+          0% { transform: rotate(0deg); }
+          100% { transform: rotate(360deg); }
+        }
+      `}</style>
+    </div>
+  );
+};
+
+export default LoadingSpinner;
+
+ErrorMessage.jsx
+
+import React from "react";
+
+const ErrorMessage = ({ message, onRetry }) => {
+  return (
+    <div
+      style={{
+        padding: "16px",
+        backgroundColor: "#f8d7da",
+        border: "1px solid #f5c6cb",
+        borderRadius: "4px",
+        color: "#721c24",
+        margin: "10px 0",
+        textAlign: "center",
+      }}
+    >
+      <p style={{ margin: "0 0 10px 0" }}>⚠️ {message}</p>
+      {onRetry && (
+        <button
+          onClick={onRetry}
+          style={{
+            padding: "6px 12px",
+            backgroundColor: "#dc3545",
+            color: "white",
+            border: "none",
+            borderRadius: "4px",
+            cursor: "pointer",
+          }}
+        >
+          다시 시도
+        </button>
+      )}
+    </div>
+  );
+};
+
+export default ErrorMessage;
+
+scheduleApi.js
+
+import { API_BASE_URL } from "../api/constants";
+
+export const scheduleApi = {
+  async getAllSchedules() {
+    const response = await fetch(API_BASE_URL);
+    if (!response.ok) throw new Error("Failed to load schedules");
+    return response.json();
+  },
+
+  async getScheduleByDate(date) {
+    const response = await fetch(`${API_BASE_URL}/${date}`);
+    if (!response.ok) throw new Error(`Failed to load schedule for date: ${date}`);
+    return response.json();
+  },
+
+  async updateCheckedStatus(date, time, checked) {
+    const response = await fetch(API_BASE_URL, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ date, time, checked: !checked }),
+    });
+    if (!response.ok) throw new Error("Failed to update checked status");
+    return response.json();
+  },
+
+  async deleteTodo(date, time) {
+    const response = await fetch(API_BASE_URL, {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ date, time }),
+    });
+    if (!response.ok) throw new Error("Failed to delete todo");
+    return response.json();
+  },
+
+  async addTodo(date, time, text) {
+    const response = await fetch(`${API_BASE_URL}/${date}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ time, text, checked: false }),
+    });
+    if (!response.ok) throw new Error("Failed to add todo");
+    return response.json();
+  },
+};
+
+constants.js
+
+export const API_BASE_URL = "http://localhost:5001/api/schedules";
+
+export const HTTP_STATUS = {
+  OK: 200,
+  CREATED: 201,
+  BAD_REQUEST: 400,
+  NOT_FOUND: 404,
+  INTERNAL_SERVER_ERROR: 500,
+};
+
+export const DEFAULT_TIME = "13:00";

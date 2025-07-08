@@ -1,0 +1,27 @@
+.TodoTemplate {
+  width: 90%;
+  max-width: 800px;
+  min-width: 320px;
+  margin: 3rem auto;
+  border-radius: 8px;
+  background-color: var(--color-bg);
+  color: var(--color-text);
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.2);
+  resize: both;
+  overflow: auto;
+
+  .app-title {
+    background: var(--color-accent);
+    color: var(--color-text-light);
+    height: 4rem;
+    font-size: 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .content {
+    background: var(--color-bg);  
+    padding: 1rem;
+  }
+} 

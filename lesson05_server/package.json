@@ -1,0 +1,23 @@
+{
+  "name": "lesson05",
+  "version": "1.0.0",
+  "main": "webserver.js",
+  "type": "module",
+  "scripts": {
+    "start": "node webserver.js",
+    "dev": "nodemon webserver.js"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^5.1.0",
+    "mongodb": "^6.17.0",
+    "mongoose": "^7.8.7"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.10"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": ""
+}

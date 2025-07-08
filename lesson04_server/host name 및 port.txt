@@ -1,0 +1,15 @@
+HOST NAME
+1. hostname - 도메인주소 - 외부에서 접속 가능한 공공 ip.
+2. local host - 딱 그 area(예, 학원용) ip, 학원 내에서만 사용 - 127.0.0.1
+3. 개인 컴퓨터 지정 ip - 192.168.0.253 - 고유 사실 ip. 내부 네트워크에 이 아이피로 접속
+
+PORT
+서버의 서비스를 구별하는 정수값 (웹서버, 이메일서버, 파일서버, db서버, etc)
+
+3. PROTOCOL
+ㄴ 통신규약
+http, https, tcp, udp, mongodb, jdbc
+보통 주소 앞에 붙음 
+접속방식이 다름
+
+uri = 포트 뒷부분에 나와있는 거 = 예시 / http://localhost:5000/api/todos 에서 /api/todos

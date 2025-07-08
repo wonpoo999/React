@@ -1,0 +1,35 @@
+:root {
+  --color-bg: #121212;
+  --color-text: #ffffff;
+  --color-accent: #38d9a9;
+  --color-text-light: #ffffff;
+}
+
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-bg: #1a1a1a;
+    --color-text: #f1f3f5;
+    --color-accent: #22b8cf;
+    --color-text-light: #ffffff;
+  }
+}
+
+body {
+  margin: 0;
+  background-color: var(--color-bg);
+  color: var(--color-text);
+  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
+}
+
+table {
+  border-collapse: collapse;
+}
+
+th, td {
+  padding: 0.5rem;
+}
+
+select, input, button {
+  margin-right: 0.5rem;
+}
