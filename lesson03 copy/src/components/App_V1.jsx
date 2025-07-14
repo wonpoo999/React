@@ -104,8 +104,8 @@ function App() {
   return (
     <div className='container'>
       <div className='TodoTemplate'>
-        <div className='app-title'>일정관리</div> 
-          <div className='content'>
+        <div className='app-title'>일정관리</div>
+        <div className='content'>
           <form className='TodoInsert' onSubmit={handleSubmit}>
             <input
               placeholder='할 일을 입력하세요.'

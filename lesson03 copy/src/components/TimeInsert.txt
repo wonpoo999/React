@@ -1,0 +1,33 @@
+import { useState } from 'react';
+
+export default function TimeInsert({ onAddTime }) {
+  const [hour, setHour] = useState('');
+  const [event, setEvent] = useState('');
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    if (!hour || !event) return alert('시간과 내용을 모두 입력하세요.');
+    onAddTime(hour, event);
+    setHour('');
+    setEvent('');
+  };
+
+  return (
+    <form onSubmit={handleSubmit} style={{ marginBottom: 20 }}>
+      <input
+        type="time"
+        value={hour}
+        onChange={(e) => setHour(e.target.value)}
+        required
+      />
+      <input
+        type="text"
+        placeholder="내용을 입력하세요"
+        value={event}
+        onChange={(e) => setEvent(e.target.value)}
+        required
+      />
+      <button type="submit">추가</button>
+    </form>
+  );
+}

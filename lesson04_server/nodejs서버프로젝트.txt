@@ -8,6 +8,8 @@ npx create-react-app my-app
 실행 이후 src, public 폴더가 생기지 않는 경우
 rm -rf `which create-react-app`
 
+C:\Class250615\mine\React>npx create-vite lesson08_assignment --template react
+
 프로젝트 초기화
 C:\Class250615\React\lesson04_server> npm init -y    (=> package.json)
 
@@ -19,6 +21,9 @@ C:\Class250615\React\lesson04_server> npm install -g nodemon
 
 프로젝트 실행
 C:\Class250615\React\lesson04_server> nodemon webserver.js
+
+npm install -D sass sass-embedded
+
 
 
 API 라우팅 테스트

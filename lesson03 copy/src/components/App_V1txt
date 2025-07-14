@@ -1,0 +1,21 @@
+<!-- 복습</div>
+                </div>
+                <div
+                  className="remove"
+                  onClick={() => handleButton(1,"리액트 수업 복습")}
+                >
+                  <MdRemoveCircleOutline />
+                </div>
+              </div>
+<div className="TodoListItem" key=1>
+                <div
+                  className={`checkbox`}
+                  onClick={() => handleChecked(2)}
+                >
+                  <MdCheckBoxOutlineBlank />
+                  <div className="text">리액트 프로젝트 기획</div>
+                </div>
+                <div
+                  className="remove"
+                  onClick={() => handleButton(2,"리액트 프로젝트 기획")}
+                > -->
