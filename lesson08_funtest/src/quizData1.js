@@ -6,7 +6,7 @@
  * - answer: 정답 보기의 인덱스 (0-based)
  * - explanation: 해설 문자열
  */
-export const quizData = [
+export const quizData1 = [
   {
     question: "useState를 사용하여 상태를 초기화할 때 올바른 코드 형태는 무엇인가요?",
     options: [
