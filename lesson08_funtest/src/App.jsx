@@ -1,14 +1,17 @@
-// src/App.jsx
+// 파일: src/App.jsx
 
 import React from "react";
-import Quiz from "./Quiz.jsx";
-import "./assets/scss/style.scss"; // 전역 스타일 import
+import Quiz from "./Quiz";
+import "./assets/scss/style.scss";
 
 function App() {
   return (
     <div className="app">
-      <h1>React 퀴즈</h1>
-      <Quiz />
+      <div className="main-content">
+        <h1>웹 프로그래밍 퀴즈</h1>
+        <div className="description">좌측의 카테고리를 선택하여 문제를 풀어보세요.</div>
+        <Quiz />
+      </div>
     </div>
   );
 }

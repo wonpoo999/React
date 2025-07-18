@@ -1,5 +1,10 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
-import { extendedJavaQuizzes as programmingQuiz } from "./quizData"; // 문제 데이터 import, 전체 퀴즈 배열을 programmingQuiz라는 이름으로 사용
+import { extendedJavaQuizzes as programmingQuiz } from "./quizData";
+import { saveRecord } from "./utils/saveRecord";
+// import { saveRecord } from "./Dashboard"; // ✅ 기록 저장 함수 import
+// import { db } from "./firebaseConfig";
+// import { addDoc, collection } from "firebase/firestore"; 
+// 문제 데이터 import, 전체 퀴즈 배열을 programmingQuiz라는 이름으로 사용
 
 const TIME_LIMIT = 30; // 각 문제당 제한 시간(초)
 
@@ -11,6 +16,7 @@ function shuffleArray(array) {
 // 퀴즈 데이터의 보기 순서를 섞고 정답 인덱스를 재계산하는 함수
 function prepareShuffledQuizData(data) {
   return data.map((q) => {
+    if (q.type === "ox" || q.type === "ox-sentence") return q; // OX 문제는 섞지 않기
     const correctValue = q.options[q.answer]; // 기존 정답 값 저장
     const shuffled = shuffleArray(q.options); // 보기 섞기
     const newAnswer = shuffled.indexOf(correctValue); // 섞은 보기에서 정답 위치 찾기
@@ -18,7 +24,7 @@ function prepareShuffledQuizData(data) {
   });
 }
 
-function Quiz() {
+function Quiz({ user }) {
   // 퀴즈 상태 정의들
   const [quizData, setQuizData] = useState([]); // 현재 보여줄 문제들
   const [hasStarted, setHasStarted] = useState(false); // 퀴즈 시작 여부
@@ -42,6 +48,25 @@ function Quiz() {
   const allCorrect = allDone && score === quizData.length; // 전부 정답 여부
   const allWrong = allDone && score === 0; // 전부 오답 여부
 
+  // ✅ 퀴즈 종료 시 Firebase에 기록 저장
+// useEffect(() => {
+//   if (allDone && user) {
+//     const saveResult = async () => {
+//       try {
+//         await addDoc(collection(db, `users/${user.uid}/records`), {
+//           score,
+//           total: quizData.length,
+//           timestamp: new Date().toISOString(),
+//         });
+//         console.log("기록 저장 완료");
+//       } catch (e) {
+//         console.error("기록 저장 실패:", e);
+//       }
+//     };
+//     saveResult();
+//   }
+// }, [allDone, user, score, quizData.length]);
+
   const allTitles = [ // 퀴즈 유형 필터 버튼 목록
     "전체",
     "React 기초",
@@ -49,6 +74,7 @@ function Quiz() {
     "Java 클래스 및 static",
     "Java 배열과 예외 처리",
     "Java 상속과 다형성",
+    "자바 추상 클래스와 인터페이스",
   ];
 
   // 시간 초과 시 호출되는 함수
@@ -106,48 +132,58 @@ function Quiz() {
   }, [currentIndex, quizEndTime, answerHistory, handleTimeout, quizData]);
 
   // 보기 선택 핸들러
-  const handleSelect = (idx) => {
-    if (!quizData.length) return;
-    const tries = answerHistory[currentIndex].tries;
-    if (
-      showAnswer ||
-      answerHistory[currentIndex].isCorrect ||
-      tries >= 2 ||
-      timeLeft === 0 ||
-      (tries === 1 && !canRetry)
-    )
-      return;
+  const handleSelect = (input) => {
+  if (!quizData.length) return;
+  const tries = answerHistory[currentIndex].tries;
 
-    setCanRetry(false);
-    setSelected(idx);
+  if (
+    showAnswer ||
+    answerHistory[currentIndex].isCorrect ||
+    tries >= 2 ||
+    timeLeft === 0 ||
+    (tries === 1 && !canRetry)
+  ) return;
 
-    if (idx === current.answer) {
-      // 정답
+  setCanRetry(false);
+  setSelected(input);
+
+const isOX = current.type === "ox" || current.type === "ox-sentence";
+const isCorrect = isOX
+  ? Array.isArray(input) &&
+    input.length === current.answer.length &&
+    input.every((val, idx) => val === current.answer[idx])
+  : input === current.answer;
+
+
+
+
+  if (isCorrect) {
+    setShowAnswer(true);
+    setMessage("✅ 정답입니다!");
+    setGifSrc("/images/correct.gif");
+    setShowTryAgainBtn(false);
+    setShowNextBtn(true);
+    updateAnswerHistory(currentIndex, true, tries + 1, input);
+  } else {
+    if (tries === 0) {
+      setMessage("❌ 오답입니다! 다시 시도해보세요.");
+      setGifSrc("/images/try-again.gif");
+      setShowTryAgainBtn(true);
+      setShowAnswer(false);
+      updateAnswerHistory(currentIndex, false, tries + 1, input);
+    } else {
+      setMessage("❌ 오답입니다! 다음 문제로 넘어가세요.");
+      setGifSrc("/images/wrong.gif");
       setShowAnswer(true);
-      setMessage("✅ 정답입니다!");
-      setGifSrc("/images/correct.gif");
       setShowTryAgainBtn(false);
       setShowNextBtn(true);
-      updateAnswerHistory(currentIndex, true, tries + 1, idx);
-    } else {
-      // 오답
-      if (tries === 0) {
-        setMessage("❌ 오답입니다! 다시 시도해보세요.");
-        setGifSrc("/images/try-again.gif");
-        setShowTryAgainBtn(true);
-        setShowAnswer(false);
-        setCanRetry(false);
-        updateAnswerHistory(currentIndex, false, tries + 1, idx);
-      } else {
-        setMessage("❌ 오답입니다! 다음 문제로 넘어가세요.");
-        setGifSrc("/images/wrong.gif");
-        setShowAnswer(true);
-        setShowNextBtn(true);
-        setShowTryAgainBtn(false);
-        updateAnswerHistory(currentIndex, false, tries + 1, idx);
-      }
+      updateAnswerHistory(currentIndex, false, tries + 1, input);
     }
-  };
+  }
+};
+
+
+  
 
   // 문제 정답 기록 갱신 함수
   const updateAnswerHistory = (idx, isCorrect, tries, selectedIdx) => {
@@ -216,6 +252,10 @@ function Quiz() {
     } else {
       clearInterval(timerId.current);
       setQuizEndTime(Date.now());
+
+       if (user) {
+      saveRecord(score); // ✅ 퀴즈 종료 시 기록 저장
+    }
     }
   };
 
@@ -245,7 +285,7 @@ function Quiz() {
         ? programmingQuiz
         : programmingQuiz.filter((q) => q.title === title);
 
-    const shuffled = shuffleArray(prepareShuffledQuizData(filtered));
+    const shuffled = prepareShuffledQuizData(filtered);
 
     setQuizData(shuffled);
     setCurrentIndex(0);
@@ -267,54 +307,111 @@ function Quiz() {
   };
 
   return (
-    <div className="quiz">
-      {/* 필터 버튼 */}
-      <div className="mode-select">
-        {allTitles.map((title) => (
-          <button key={title} onClick={() => handleFilterByTitle(title)}>
-            {title}
-          </button>
-        ))}
-      </div>
+ <div className="quiz-layout"> {/* 퀴즈 전체를 감싸는 레이아웃 */}
+  <div className="mode-select-vertical"> {/* 좌측 버튼 */}
+    {allTitles.map((title) => (
+      <button key={title} onClick={() => handleFilterByTitle(title)}>
+        {title}
+      </button>
+    ))}
+  </div>
 
-      {/* 필터 버튼 클릭 전 안내 */}
-      {!hasStarted && <p className="info">원하는 유형의 문제 버튼을 눌러 시작하세요.</p>}
+    {/* 우측: 문제 영역 */}
+    <div className="quiz-content">
+      {!hasStarted && (
+        <p className="info">원하는 유형의 문제 버튼을 눌러 시작하세요.</p>
+      )}
 
-      {/* 문제 영역 */}
       {hasStarted && quizData.length > 0 && !allDone && (
         <>
           <h3 className="quiz-progress">
             Quiz {currentIndex + 1} / {quizData.length} | 남은 시간: {timeLeft}s
           </h3>
-          <h2 style={{ whiteSpace: "pre-wrap" }}>{current.question}</h2>
-          <ul>
-            {current.options.map((option, idx) => {
-              const isCorrect = showAnswer && idx === current.answer;
-              const isWrong = showAnswer && selected === idx && selected !== current.answer;
-              const tries = answerHistory[currentIndex].tries;
-              const disabled =
-                tries >= 2 ||
-                answerHistory[currentIndex].isCorrect ||
-                (tries === 1 && !canRetry) ||
-                timeLeft === 0;
+          {current.type === "ox" ? (
+  <pre className="question-text">{current.question}</pre>
+) : (
+  <h2 className="question-text">{current.question}</h2>
+)}
 
-              return (
-                <li
-                  key={idx}
-                  onClick={() => handleSelect(idx)}
-                  className={`option ${isCorrect ? "correct" : ""} ${isWrong ? "wrong" : ""} ${
-                    disabled ? "disabled" : ""
-                  }`}
-                >
-                  {option}
-                </li>
-              );
-            })}
-          </ul>
-        </>
+  {(current.type === "ox" || current.type === "ox-sentence") ? (
+  <div className="ox-question">
+    {current.subQuestions.map((subQ, subIdx) => {
+      const subAnswer = current.answer[subIdx];
+      const userAnswer = selected?.[subIdx];
+      const tries = answerHistory[currentIndex]?.tries || 0;
+      const disabled =
+        tries >= 2 ||
+        answerHistory[currentIndex]?.isCorrect ||
+        (tries === 1 && !canRetry) ||
+        timeLeft === 0;
+
+      return (
+        <div key={subIdx} className="ox-sub-item">
+          <pre className="question-text">{subQ}</pre>
+          <div className="ox-options">
+            {["O", "X"].map((ox) => (
+              <span
+                key={ox}
+                className={`ox-choice 
+                  ${userAnswer === ox ? (ox === "O" ? "selected-o" : "selected-x") : ""} 
+                  ${showAnswer && ox === subAnswer ? "correct" : ""} 
+                  ${showAnswer && userAnswer === ox && ox !== subAnswer ? "wrong" : ""} 
+                  ${disabled ? "disabled" : ""}
+                `}
+                onClick={() => {
+                  if (disabled) return;
+                  const updated = [...(selected || [])];
+                  updated[subIdx] = ox;
+                  setSelected(updated);
+                }}
+              >
+                {ox}
+              </span>
+            ))}
+          </div>
+        </div>
+      );
+    })}
+    <div className="ox-submit">
+      <button
+        className="check-btn"
+        disabled={
+           !selected || selected.filter(v => v === "O" || v === "X").length !== current.subQuestions.length
+        }
+        onClick={() => handleSelect(selected)}
+      >
+        제출
+      </button>
+    </div>
+  </div>
+) : (
+
+  <ul>
+    {current.options.map((option, idx) => {
+      const isCorrect = showAnswer && idx === current.answer;
+      const isWrong = showAnswer && selected === idx && selected !== current.answer;
+      const tries = answerHistory[currentIndex].tries;
+      const disabled =
+        tries >= 2 ||
+        answerHistory[currentIndex].isCorrect ||
+        (tries === 1 && !canRetry) ||
+        timeLeft === 0;
+
+      return (
+        <li
+          key={idx}
+          onClick={() => handleSelect(idx)}
+          className={`option ${isCorrect ? "correct" : ""} ${isWrong ? "wrong" : ""} ${disabled ? "disabled" : ""}`}
+        >
+          {option}
+        </li>
+      );
+    })}
+  </ul>
+)}
+       </>
       )}
 
-      {/* 정답/오답 메시지 */}
       {(message || gifSrc) && !allDone && (
         <div className="feedback">
           <p>{message}</p>
@@ -322,7 +419,6 @@ function Quiz() {
         </div>
       )}
 
-      {/* 다시 시도 버튼 */}
       {answerHistory[currentIndex]?.tries === 1 &&
         showTryAgainBtn &&
         !allDone &&
@@ -332,23 +428,27 @@ function Quiz() {
           </button>
         )}
 
-      {/* 다음 or 결과 보기 버튼 */}
-      {showNextBtn && !allDone && hasStarted && (
-        currentIndex < quizData.length - 1 ? (
-          <button onClick={goNext} className="next-btn">다음 문제로</button>
+      {showNextBtn && !allDone && hasStarted &&
+        (currentIndex < quizData.length - 1 ? (
+          <button onClick={goNext} className="next-btn">
+            다음 문제로
+          </button>
         ) : (
           <button onClick={() => setQuizEndTime(Date.now())} className="finish-btn">
             결과 보기
           </button>
-        )
-      )}
+        ))}
 
-      {/* 결과 화면 */}
       {allDone && (
         <div className="result">
           <h2>퀴즈 종료!</h2>
-          <p>정답 개수: {score} / {quizData.length}</p>
-          <p>소요 시간: {Math.floor((quizEndTime - quizStartTime.current) / 1000)}초</p>
+          <p>
+            정답 개수: {score} / {quizData.length}
+          </p>
+          <p>
+            소요 시간:{" "}
+            {Math.floor((quizEndTime - quizStartTime.current) / 1000)}초
+          </p>
 
           {allCorrect && (
             <>
@@ -375,7 +475,8 @@ function Quiz() {
         </div>
       )}
     </div>
-  );
+  </div>
+);
 }
 
 export default Quiz;

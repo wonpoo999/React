@@ -1,31 +1,109 @@
+// =============================
+// 📌 전체 body 및 기본 구조
+// =============================
+body {
+  margin: 0; // 바깥 여백 제거
+  padding: 0; // 안쪽 여백 제거
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif; // 기본 폰트 지정
+  background-image: url("../../../public/images/web.jpg"); // 배경 이미지 경로 (public/images 폴더 내 web.jpg)
+  background-size: cover; // 이미지가 화면 전체를 덮도록 확대/축소
+  background-position: center; // 중앙 정렬
+  background-repeat: no-repeat; // 반복 없음
+  background-attachment: fixed; // 스크롤해도 배경은 고정
+  min-height: 100vh; // 최소 높이를 화면 전체로 설정
+  display: flex; // 내부를 flex로 정렬
+  justify-content: center; // 가로 중앙 정렬
+  align-items: flex-start; // 세로는 상단 정렬
+}
+// =============================
+// 📌 앱 전체 컨테이너
+// =============================
 .app {
-  max-width: 600px;
-  margin: 2rem auto;
-  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  // display: flex; // 좌측 버튼 + 우측 퀴즈 배치
+  max-width: 900px; // 최대 너비 지정
+  width: 95%; // 반응형을 위해 화면의 90% 차지
+  margin: 5rem auto; // 위아래는 3rem, 좌우는 자동 정렬 (가운데 정렬)
+  // background: rgba(255, 255, 255, 0.98); // 반투명 흰 배경
+  background: #ffffff; //완전 흰색(불투명)
+  padding: 2.5rem; // 안쪽 여백
+  border-radius: 20px; // 둥근 모서리
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2); // 그림자 효과
   text-align: center;
-  background: #fff;
-  padding: 1rem;
-  border-radius: 12px;
-  box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+  // gap: 2rem; // 내부 텍스트 가운데 정렬
+}
+// =============================
+// 📌 좌측 필터 버튼 영역
+// =============================
+.sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  position: sticky;
+  top: 2rem;
+  height: fit-content;
 }
 
-/* 퀴즈 박스 기본 스타일 */
+.sidebar button {
+  background-color: #f0f0f0;
+  padding: 0.6rem 1rem;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+  cursor: pointer;
+  font-size: 0.95rem;
+  transition: all 0.2s ease;
+
+   &:hover {
+    background-color: #dce6ff;
+  }
+
+  &.selected {
+    background-color: #007bff;
+    color: white;
+    border-color: #007bff;
+  }
+}
+// =============================
+// 📌 퀴즈 박스 스타일
+// =============================
 .quiz {
-  background: #f9f9f9;
-  padding: 2rem;
-  border-radius: 12px;
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  flex: 1;
+  background: #fdfdfd; // 약간 회색 배경
+  padding: 2rem; // 안쪽 여백
+  border-radius: 16px; // 둥근 모서리
+  box-shadow: 0 0 12px rgba(0, 0, 0, 0.1); // 가벼운 그림자
 }
+// =============================
+// 📌 퀴즈 박스 중앙 제목 & 시간 스타일 추가
+// =============================
+.quiz-header {
+  text-align: center;
+  margin-bottom: 2rem;
 
-/* 상단 퀴즈 진행도 */
+  h1 {
+    font-size: 2rem;
+    font-weight: bold;
+    margin-bottom: 0.5rem;
+  }
+
+  p {
+    font-size: 1rem;
+    color: #555;
+  }
+}
+// =============================
+// 📌 퀴즈 상단 진행도 표시
+// =============================
 .quiz-progress {
-  font-weight: bold;
-  font-size: 1.2rem;
-  margin-bottom: 0.5rem;
-  color: #333;
+  font-weight: bold; // 굵은 글씨
+  font-size: 1.2rem; // 글자 크기
+  margin-bottom: 1rem; // 아래 여백
+  color: #333; // 약간 어두운 회색
 }
+// =============================
+// 📌 기존 상단 버튼은 숨김 처리
+// =============================
 
-/* 출처 필터 버튼 영역 */
+/* 출처 필터 버튼 */
 .source-filter {
   display: flex;
   flex-wrap: wrap;
@@ -42,61 +120,63 @@
   cursor: pointer;
   border-radius: 6px;
   transition: all 0.2s ease;
-}
 
-.source-btn:hover {
-  background-color: #ddd;
-  border-color: #888;
-}
+  &:hover {
+    background-color: #ddd;
+    border-color: #888;
+  }
 
-.source-btn.active {
-  background-color: #007bff;
-  color: white;
-  border-color: #007bff;
+  &.active {
+    background-color: #007bff;
+    color: white;
+    border-color: #007bff;
+  }
 }
-
-/* 퀴즈 보기 리스트 */
+// =============================
+// 📌 객관식 보기 스타일
+// =============================
 ul {
-  list-style: none;
-  padding: 0;
+  list-style: none; // 리스트 점 제거
+  padding: 0; // 안쪽 여백 제거
 
   .option {
-    background: #fff;
-    padding: 1rem;
-    margin: 0.5rem 0;
-    border: 1px solid #ddd;
-    border-radius: 8px;
-    cursor: pointer;
-    transition: background 0.3s, border-color 0.3s;
+    background: #fff; // 배경색 흰색
+    padding: 1rem; // 안쪽 여백
+    margin: 0.5rem 0; // 위아래 여백
+    border: 1px solid #ddd; // 옅은 테두리
+    border-radius: 10px; // 둥근 모서리
+    cursor: pointer; // 마우스 포인터 변경
+    transition: 0.3s; // 부드러운 전환 효과
 
     &:hover {
-      background: #f0f0f0;
+      background: #f0f0f0; // 마우스 오버 시 배경 회색
     }
 
     &.correct {
-      background-color: #d4edda;
-      border-color: #28a745;
-      font-weight: bold;
-      color: #155724;
+      background-color: #d4edda; // 정답일 때 연한 초록 배경
+      border-color: #28a745; // 테두리 진한 초록
+      color: #155724; // 글자 진한 초록
+      font-weight: bold; // 굵은 글씨
     }
 
     &.wrong {
-      background-color: #f8d7da;
-      border-color: #dc3545;
-      font-weight: bold;
-      color: #721c24;
+      background-color: #f8d7da; // 오답일 때 연한 빨간 배경
+      border-color: #dc3545; // 테두리 진한 빨강
+      color: #721c24; // 글자 진한 빨강
+      font-weight: bold; // 굵은 글씨
     }
 
     &.disabled {
-      pointer-events: none;
-      cursor: default;
-      background: #f9f9f9 !important;
-      color: #999;
+      background: #f5f5f5 !important; // 선택 불가일 때 연한 회색 배경
+      color: #aaa; // 회색 글자
+      cursor: not-allowed; // 금지 표시 커서
+      pointer-events: none; // 클릭 비활성화
     }
   }
 }
-
-/* 주관식 문제 입력창 영역 (fill-question은 현재 미사용이나 유지함) */
+// =============================
+// 📌 주관식 (현재 비활성용)
+// =============================
 .fill-question {
   display: flex;
   justify-content: center;
@@ -129,87 +209,246 @@ ul {
     }
   }
 }
-
-/* 정답/오답 피드백 영역 */
+// =============================
+// 📌 정답/오답 메시지 및 gif 출력 영역
+// =============================
 .feedback {
-  margin-top: 1rem;
+  margin-top: 1rem; // 위쪽 여백
 
   p {
-    font-size: 1.1rem;
+    font-size: 1.1rem; // 글자 크기
   }
 
   .result-gif {
-    max-width: 100%;
-    margin-top: 1rem;
-    border-radius: 10px;
+    max-width: 100%; // 반응형 이미지
+    margin-top: 1rem; // 위쪽 여백
+    border-radius: 10px; // 둥근 모서리
   }
 }
-
-/* 공통 버튼 스타일 */
+// =============================
+// 📌 모든 버튼에 공통 적용되는 스타일
+// =============================
+button,
 .try-again-btn,
 .next-btn,
 .finish-btn,
 .retry-btn {
-  margin-top: 1rem;
-  padding: 0.5rem 1.2rem;
-  font-size: 1rem;
-  cursor: pointer;
-  border-radius: 6px;
-  border: none;
-  background-color: #007bff;
-  color: white;
-  transition: background-color 0.3s ease;
-  display: inline-block;
+  margin-top: 1rem; // 위쪽 여백
+  padding: 0.6rem 1.3rem; // 안쪽 여백
+  font-size: 1rem; // 글자 크기
+  border: none; // 테두리 제거
+  border-radius: 8px; // 둥근 모서리
+  background-color: #007bff; // 파란 배경
+  color: white; // 흰 글씨
+  cursor: pointer; // 손가락 커서
+  transition: background-color 0.3s ease; // 배경색 전환 효과
 }
 
-.try-again-btn:hover,
-.next-btn:hover,
-.finish-btn:hover,
-.retry-btn:hover {
-  background-color: #0056b3;
+button:hover {
+  background-color: #0056b3; // 마우스 오버 시 더 진한 파란색
 }
-
-/* 퀴즈 결과 출력 영역 */
+// =============================
+// 📌 퀴즈 결과 출력 영역
+// =============================
 .result {
-  margin-top: 2rem;
-  text-align: center;
+  margin-top: 2rem; // 위쪽 여백
 
   h2 {
-    margin-bottom: 1rem;
+    margin-bottom: 1rem; // 아래 여백
   }
 
   p {
-    font-size: 1.1rem;
-    margin: 0.5rem 0;
+    font-size: 1.1rem; // 글자 크기
+    margin: 0.5rem 0; // 위아래 여백
   }
 }
 
-/* 모드 전환 버튼 (선택형/주관식) 선택 UI용 - 향후 확장 대비 */
-.mode-select {
+.quiz-layout {
   display: flex;
-  flex-wrap: wrap;
+  gap: 2rem;
+  align-items: flex-start;
+}
+
+.mode-select-vertical {
+  display: flex;
+  flex-direction: column;
   gap: 10px;
+}
+
+.quiz-content {
+  flex: 1;
+}
+
+// =============================
+// 📌 style.scss에 고정폭 글꼴과 줄바꿈 스타일 추가
+// =============================
+.question-text {
+  white-space: pre-wrap; // ✅ pre 태그 내용 줄바꿈 허용
+  font-size: 16px;
+  line-height: 1.6;
   margin-bottom: 20px;
-  justify-content: center;
+  text-align: center;
+  max-width: 100%;
+}
 
-  button {
-    padding: 10px 15px;
-    border: none;
+.ox-question {
+  margin-top: 20px;
+  font-family: 'Courier New', monospace;
+
+  .question-text {
+    white-space: pre-wrap;
     background-color: #f0f0f0;
+    padding: 10px;
     border-radius: 8px;
-    cursor: pointer;
-    transition: 0.3s;
+  }
 
-    &:hover {
-      background-color: #dce6ff;
+.ox-options {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  }
+
+  .ox-choice {
+    border: 2px solid #ccc;
+    border-radius: 6px;
+    padding: 10px 20px;
+    cursor: pointer;
+    font-size: 18px;
+    font-weight: bold;
+    transition: 0.2s;
+    user-select: none;
+  }
+
+  .ox-choice.selected-o {
+    background-color: #cceeff;
+    border-color: #3399cc;
+  }
+
+  .ox-choice.selected-x {
+    background-color: #ffcccc;
+    border-color: #cc3333;
+  }
+
+  .ox-choice.correct {
+    background-color: #d4edda;
+    border-color: #28a745;
+    color: #155724;
+  }
+
+  .ox-choice.wrong {
+    background-color: #f8d7da;
+    border-color: #dc3545;
+    color: #721c24;
+  }
+}
+
+// =============================
+// 📌 OX 입력형 문제 (13번/14번 전용)
+// =============================
+.ox-matrix {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  align-items: center;
+  margin-top: 20px;
+
+  .ox-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+
+    .ox-label {
+      font-weight: bold;
+      font-size: 1.1rem;
+      margin-right: 8px;
+    }
+
+    .ox-btn {
+      padding: 8px 16px;
+      font-size: 18px;
+      border: 2px solid #ccc;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background-color 0.2s ease;
+
+      &.selected {
+        background-color: #ddd;
+        font-weight: bold;
+      }
+
+      &.correct {
+        background-color: #d4edda;
+        border-color: #28a745;
+        color: #155724;
+      }
+
+      &.wrong {
+        background-color: #f8d7da;
+        border-color: #dc3545;
+        color: #721c24;
+      }
     }
   }
+}
 
+// =============================
+// 📌 OX 문제용 제출 버튼 스타일 (눈에 띄게 개선)
+// =============================
+.ox-submit .check-btn {
+  padding: 12px 24px;
+  font-size: 1.1rem;
+  font-weight: bold;
+  background-color: #28a745; // 초록색
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  margin-top: 20px;
+  transition: background-color 0.3s;
 
+  &:hover {
+    background-color: #218838; // 오버 시 더 진한 초록색
+  }
 
-  button.selected,
-  button:hover {
-    background-color: #007bff;
-    color: white;
+  &:disabled {
+    background-color: #ccc;
+    cursor: not-allowed;
   }
 }
+
+
+
+
+
+/* 퀴즈 유형 필터 버튼 영역 / 모드 전환용 (선택형/주관식 대비용) */
+.mode-select {
+  display: none;
+  // display: flex; // 가로 정렬
+  // flex-wrap: wrap; // 줄바꿈 허용
+  // justify-content: center; // 가운데 정렬
+  // gap: 10px; // 버튼 사이 여백
+  // margin-bottom: 1.5rem; // 아래 여백
+
+  // button {
+  //   background-color: #f0f0f0; // 기본 회색 배경
+  //   padding: 0.7rem 1.2rem; // 안쪽 여백
+  //   border-radius: 8px; // 둥근 모서리
+  //   cursor: pointer; // 손가락 커서
+  //   font-size: 0.95rem; // 약간 작은 글씨
+  //   border: 1px solid #ccc; // 옅은 테두리
+  //   transition: all 0.2s ease; // 모든 전환 효과
+
+  //   &:hover {
+  //     background-color: #dce6ff; // 오버 시 연한 파랑
+  //   }
+
+  //   &.selected {
+  //     background-color: #007bff; // 선택 시 파랑
+  //     color: white; // 흰 글씨
+  //     border-color: #007bff; // 테두리도 파랑
+  //   }
+  // }
+}
+
+
